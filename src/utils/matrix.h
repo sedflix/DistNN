@@ -5,10 +5,7 @@
 #include <cuda_runtime.h>
 
 // citation: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
-#define checkCudaErrors(ans)                  \
-    {                                         \
-        gpuAssert((ans), __FILE__, __LINE__); \
-    }
+#define checkCudaErrors(ans) gpuAssert((ans), __FILE__, __LINE__);
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
 {
     if (code != cudaSuccess)
@@ -54,13 +51,13 @@ class Matrix
         // free gpu memory
         if (this->data_d != NULL)
         {
-            cudaFree(this->data_d);
+            checkCudaErrors(cudaFree(this->data_d));
         }
 
         // free cpu memory
         if (this->data_h != NULL)
         {
-            cudaFreeHost(this->data_h);
+            checkCudaErrors(cudaFreeHost(this->data_h));
         }
     }
 
@@ -79,7 +76,7 @@ class Matrix
     // gives the actual size, in bytes, of the correspoding 1-D array
     long get_size()
     {
-        return this->get_len() * sizeof(*data_h);
+        return this->get_len() * sizeof(T);
     }
 
     // get the value at (i,j,k)
@@ -98,24 +95,21 @@ class Matrix
 
     // indexing operator
     T &operator()(long i, long j, long k)
-    {
+    {   
         return this->get(i, j, k);
     }
 
     // set everything to 0 on cpu
     void reset_h()
     {
-        memset(data_h, 0, this->get_size());
+        // TODO: CHECK THIS ERROR
+        // checkCudaErrors(cudaMemset(this->data_h, 0, this->get_size()));
     }
 
     // set everything to 0 on gpu
     void reset_d()
     {
-        if (cudaMemset(data_h, 0, this->get_size()) != cudaSuccess)
-        {
-            fprintf(stderr, "Matrix::malloc_d() Unable to memset %ld bytes on GPU \n", this->get_size());
-            exit(0);
-        }
+        checkCudaErrors(cudaMemset(this->data_d, 0, this->get_size()));
     }
 
     // get pointer to the cpu data
@@ -137,7 +131,7 @@ class Matrix
     {
         this->malloc_d();
         this->malloc_h();
-        (cudaMemcpy(this->data_h,
+        checkCudaErrors(cudaMemcpy(this->data_h,
                                    this->data_d,
                                    this->get_size(),
                                    cudaMemcpyDeviceToHost));
@@ -148,10 +142,10 @@ class Matrix
     {
         this->malloc_d();
         this->malloc_h();
-                checkCudaErrors((cudaMemcpy(this->data_d, 
-                this->data_h, 
-                this->get_size(), 
-                cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(this->data_d, 
+                                    this->data_h, 
+                                    this->get_size(), 
+                                    cudaMemcpyHostToDevice));
     }
 
     // let's copy stuffs from cpu to gpu using stream
@@ -169,7 +163,7 @@ class Matrix
     {
         if (data_h == NULL)
         {
-            cudaHostAlloc(this->data_h, this->get_size, cudaHostAllocPortable);
+            checkCudaErrors(cudaHostAlloc(&this->data_h, this->get_size(), cudaHostAllocPortable));
             if (!this->data_h)
             {
                 fprintf(stderr, "Matrix::malloc_h() Unable to allocate %ld bytes on CPU \n", this->get_size());
@@ -183,7 +177,7 @@ class Matrix
     {
         if (data_d == NULL)
         {
-            if (cudaMalloc(this->data_d, this->get_size()) != cudaSuccess)
+            if (cudaMalloc((void **)&this->data_d, this->get_size()) != cudaSuccess)
             {
                 fprintf(stderr, "Matrix::malloc_d() Unable to allocate %ld bytes on GPU \n", this->get_size());
                 exit(0);
