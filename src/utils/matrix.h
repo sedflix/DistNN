@@ -6,7 +6,6 @@
 
 
 /*cublass helpers*/
-static cublasHandle_t cublass_handle = NULL;
 cublasHandle_t& get_cublass_handle();
 
 // citation: https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
@@ -29,22 +28,26 @@ class Matrix
     T *data_d; // device data
 
   public:
-    long rows, cols, channels;
+    long n_rows, n_cols, n_channels;
 
   public:
     // constructor with the given data
-    Matrix(long rows, long cols, long channels, T *data)
+    Matrix(long n_rows, long n_cols, long n_channels, T *data)
     {
-        Matrix(rows, cols, channels);
+        Matrix(n_rows, n_cols, n_channels);
         malloc_h();
     }
 
+    Matrix() {
+    
+    }
+
     // default constructor
-    Matrix(long rows, long cols, long channels)
+    Matrix(long n_rows, long n_cols, long n_channels)
     {
-        this->rows = rows;
-        this->cols = cols;
-        this->channels = channels;
+        this->n_rows = n_rows;
+        this->n_cols = n_cols;
+        this->n_channels = n_channels;
 
         data_h = NULL;
         data_d = NULL;
@@ -69,13 +72,13 @@ class Matrix
     // get the index in the corresponding 1-D array
     long get_index(long i, long j, long k)
     {
-        return (i * this->cols + j) + this->cols * this->rows * k;
+        return (i * this->n_cols + j) + this->n_cols * this->n_rows * k;
     }
 
     // gives the size of the correspoding 1-D array
     long get_len()
     {
-        return this->cols * this->rows * this->channels;
+        return this->n_cols * this->n_rows * this->n_channels;
     }
 
     // gives the actual size, in bytes, of the correspoding 1-D array
@@ -197,4 +200,7 @@ class Matrix
 /**
  * z = x*y
  */
-void matrix_mul(Matrix<float>* x, Matrix<float>* y, Matrix<float>*z);
+
+void matrix_mul(Matrix<float>* x, Matrix<float>* y, Matrix<float>* z);
+void matrix_mul_tx(Matrix<float>* x, Matrix<float>*y, Matrix<float>*z);
+void matrix_mul_ty(Matrix<float>* x, Matrix<float>*y, Matrix<float>*z);
