@@ -34,8 +34,12 @@ class Matrix
     // constructor with the given data
     Matrix(long n_rows, long n_cols, long n_channels, T *data)
     {
-        Matrix(n_rows, n_cols, n_channels);
-        malloc_h();
+        this->n_rows = n_rows;
+        this->n_cols = n_cols;
+        this->n_channels = n_channels;
+
+        data_h = data;
+        this->to_gpu();
     }
 
     Matrix() {

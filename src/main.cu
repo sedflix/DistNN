@@ -2,6 +2,6 @@
 
 int main() {
     Layer a = Layer(100,10);
-    Matrix<float> x = Matrix<float>(1,100,1);
+    Matrix<float> x = Matrix<float>(100,1,1);
     a.forward(x);
 }
