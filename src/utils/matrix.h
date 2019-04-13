@@ -38,8 +38,8 @@ class Matrix
         this->n_cols = n_cols;
         this->n_channels = n_channels;
 
-        data_h = data;
-        this->to_gpu();
+        this->data_h = data;
+        this->data_d = NULL;
     }
 
     Matrix() {
@@ -58,20 +58,20 @@ class Matrix
     }
 
     // let's destroy my life plox
-    ~Matrix()
-    {
-        // free gpu memory
-        if (this->data_d != NULL)
-        {
-            checkCudaErrors(cudaFree(this->data_d));
-        }
+    // ~Matrix()
+    // {
+    //     // free gpu memory
+    //     if (this->data_d != NULL)
+    //     {
+    //         checkCudaErrors(cudaFree(this->data_d));
+    //     }
 
-        // free cpu memory
-        if (this->data_h != NULL)
-        {
-            checkCudaErrors(cudaFreeHost(this->data_h));
-        }
-    }
+    //     // free cpu memory
+    //     if (this->data_h != NULL)
+    //     {
+    //         checkCudaErrors(cudaFreeHost(this->data_h));
+    //     }
+    // }
 
     // get the index in the corresponding 1-D array
     long get_index(long i, long j, long k)
@@ -115,14 +115,14 @@ class Matrix
     void reset_h()
     {
         // TODO: CHECK THIS ERROR
-        // checkCudaErrors(cudaMemset(this->data_h, 0, this->get_size()));
+        memset(this->data_h, 2, this->get_size());
     }
 
     // set everything to 0 on gpu
     void reset_d()
     {   
         // malloc avoided due to recursion problem
-        checkCudaErrors(cudaMemset(this->data_d, 0, this->get_size()));
+        checkCudaErrors(cudaMemset(this->data_d, 2, this->get_size()));
     }
 
     // get pointer to the cpu data
@@ -197,6 +197,24 @@ class Matrix
             }
             this->reset_d();
         }
+    }
+
+
+    void print() 
+    {
+        for(int k = 0; k < this->n_channels; k++)
+        {    
+            for(int i = 0; i < this->n_rows; i++)
+            {
+                for(int j = 0; j < this->n_cols; j++)
+                {
+                    printf("%f, ", this->get(i,j,k));
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+        
     }
 };
 

@@ -24,6 +24,23 @@ __global__ void relu_forward(float *x, int N)
     if(idx < N) {
         if(x[idx] < 0) {
             x[idx] = 0;
-        } 
+        }
     }
 }
+
+__global__ void add(float *a, float *b, int N)
+{
+    int idx = blockDim.x*blockIdx.x + threadIdx.x;
+    if(idx < N) {
+       a[idx] += b[idx];
+    }
+}
+
+__global__ void subtract(float *a, float *b, int N)
+{
+    int idx = blockDim.x*blockIdx.x + threadIdx.x;
+    if(idx < N) {
+       a[idx] -= b[idx];
+    }
+}
+
