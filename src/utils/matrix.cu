@@ -48,6 +48,7 @@ void matrix_mul(Matrix<float>* x, Matrix<float>* y, Matrix<float>*z)
     );
     
     checkCudaErrors(cudaStreamSynchronize(0))
+    
 	if(cublas_status != CUBLAS_STATUS_SUCCESS) {
         fprintf(stderr, "matrix_mul(): cublasSgemm()\n");
         delete x;
