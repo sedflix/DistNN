@@ -1,6 +1,6 @@
 // #define USE_MNIST_LOADER
 // #define MNIST_DOUBLE
-#include "utils/mnist.h"
+//#include "utils/mnist.h"
 #include "layers/layers.h"
 #include <stdio.h>
 
@@ -22,14 +22,14 @@ int main() {
     
     float *data = (float *)malloc(10*sizeof(float));
     for(int i=0; i<10; i++) {
-        data[i] = 2.0f;
+        data[i] = 1.0f;
     }
     Matrix<float> x = Matrix<float>(10,1,1,data);
     x.to_gpu();
 
     float *loss = (float *)malloc(3*sizeof(float));
     for(int i=0; i<3; i++) {
-        data[i] = 2.0f;
+        data[i] = 1.0f;
     }
     Matrix<float> loss_m = Matrix<float>(3,1,1,loss);
     loss_m.to_gpu();

@@ -24,7 +24,7 @@ class Layer
         Matrix<float> dx;
 
         Matrix<float> y;
-        Matrix<float> dy_;
+        Matrix<float> dy;
 
         Matrix<float> x;
 
@@ -40,7 +40,7 @@ class Layer
             dx = Matrix<float>(input_dim, 1, 1);
 
             y = Matrix<float>(output_dim, 1, 1);
-            dy_ = Matrix<float>(output_dim, 1, 1);
+            dy = Matrix<float>(output_dim, 1, 1);
 
             b = Matrix<float>(output_dim, 1, 1);
             db = Matrix<float>(output_dim, 1, 1);
@@ -67,10 +67,10 @@ class Layer
             return y;
         }
 
-       void backward(Matrix<float> dy) {
-            // relu_backward<<<this->output_dim,1>>>(dy.get_d(), y.get_d(), this->dy_.get_d(), this->output_dim);
-            matrix_mul_tx(&w, &dy, &dx);
-            matrix_mul_ty(&dy, &x, &dw);
+       void backward(Matrix<float> input_gradient) {
+            // relu_backward<<<this->output_dim,1>>>(input_gradient.get_d(), y.get_d(), this->dy.get_d(), this->output_dim);
+            matrix_mul_tx(&w, &input_gradient, &dx);
+            matrix_mul_ty(&input_gradient, &x, &dw);
             cudaDeviceSynchronize();
         }
 

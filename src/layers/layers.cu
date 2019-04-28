@@ -1,6 +1,6 @@
 #include "layers.h"
 #include <cuda_runtime.h>
-
+#include <math.h>
 // Layer::Layer(int input_dim, int output_dim)
 // {
 

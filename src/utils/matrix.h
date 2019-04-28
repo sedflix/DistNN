@@ -40,6 +40,8 @@ class Matrix
 
         this->data_h = data;
         this->data_d = NULL;
+
+        this->malloc_d();
     }
 
     Matrix() {
@@ -55,6 +57,10 @@ class Matrix
 
         data_h = NULL;
         data_d = NULL;
+
+        this->malloc_h();
+        this->malloc_d();
+        this->to_gpu();
     }
 
     // let's destroy my life plox
@@ -94,7 +100,7 @@ class Matrix
     // get the value at (i,j,k)
     T get(long i, long j, long k)
     {
-        this->malloc_h();
+        // this->malloc_h();
         return this->data_h[this->get_index(i, j, k)];
     }
 
@@ -115,7 +121,13 @@ class Matrix
     void reset_h()
     {
         // TODO: CHECK THIS ERROR
-        memset(this->data_h, 2, this->get_size());
+        for (int i = 0; i<this->get_size(); i++)
+        {
+            this->data_h[i] = float(std::rand() % 100) / 100;
+            this->data_h[i] = 1;
+
+        }
+        // memset(this->data_h, 2.0, this->get_size());
     }
 
     // set everything to 0 on gpu
@@ -195,7 +207,6 @@ class Matrix
                 fprintf(stderr, "Matrix::malloc_d() Unable to allocate %ld bytes on GPU \n", this->get_size());
                 exit(0);
             }
-            this->reset_d();
         }
     }
 

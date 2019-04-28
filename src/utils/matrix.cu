@@ -129,18 +129,23 @@ void matrix_mul_ty(Matrix<float>* x, Matrix<float>*y, Matrix<float>*z)
 
 // int main(){
     
-//     Matrix<float> a = Matrix<float>(100,100,1);
+//     Matrix<float> a = Matrix<float>(5,6,1);
 //     a.to_gpu();
-
-//     Matrix<float> b = Matrix<float>(100,100,1);
+//     a.to_cpu();
+    
+//     a.print();
+//     Matrix<float> b = Matrix<float>(5,6,1);
 //     b.to_gpu();
+//     b.to_cpu();
+//     b.print();
 
-//     Matrix<float> c = Matrix<float>(100,100,1);
+//     Matrix<float> c = Matrix<float>(5,5,1);
 //     c.to_gpu();
 
-//     matrix_mul_tx(&a,&b,&c);
+//     matrix_mul_ty(&a,&b,&c);
 
 //     c.to_cpu();
+//     c.print();
 
 //     printf(" %f \n", c.get(1,2,3));
     
