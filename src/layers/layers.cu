@@ -28,6 +28,15 @@ __global__ void relu_forward(float *x, int N)
     }
 }
 
+__global__ void softmax_backward(float *x, float *real, int N)
+{
+    int idx = blockDim.x*blockIdx.x + threadIdx.x;
+    if(idx < N)
+    {
+        x[idx] -= real[idx];
+    }
+}
+
 __global__ void add(float *a, float *b, int N)
 {
     int idx = blockDim.x*blockIdx.x + threadIdx.x;

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
-
+#include <time.h>
 
 /*cublass helpers*/
 cublasHandle_t& get_cublass_handle();
@@ -42,6 +42,7 @@ class Matrix
         this->data_d = NULL;
 
         this->malloc_d();
+        this->to_gpu();
     }
 
     Matrix() {
@@ -49,7 +50,7 @@ class Matrix
     }
 
     // default constructor
-    Matrix(long n_rows, long n_cols, long n_channels)
+    Matrix(long n_rows, long n_cols, long n_channels, bool rand = false)
     {
         this->n_rows = n_rows;
         this->n_cols = n_cols;
@@ -59,6 +60,10 @@ class Matrix
         data_d = NULL;
 
         this->malloc_h();
+        if (rand)
+        {
+            this->reset_h();
+        }
         this->malloc_d();
         this->to_gpu();
     }
@@ -104,7 +109,7 @@ class Matrix
         return this->data_h[this->get_index(i, j, k)];
     }
 
-    // set he value at (i,j,k)
+    // set the value at (i,j,k)
     void set(long i, long j, long k, T value)
     {
         this->malloc_h();
@@ -121,11 +126,10 @@ class Matrix
     void reset_h()
     {
         // TODO: CHECK THIS ERROR
+        srand(time(NULL));
         for (int i = 0; i<this->get_size(); i++)
         {
             this->data_h[i] = float(std::rand() % 100) / 100;
-            this->data_h[i] = 1;
-
         }
         // memset(this->data_h, 2.0, this->get_size());
     }
@@ -193,7 +197,6 @@ class Matrix
             {
                 fprintf(stderr, "Matrix::malloc_h() Unable to allocate %ld bytes on CPU \n", this->get_size());
             }
-            this->reset_h();
         }
     }
 
