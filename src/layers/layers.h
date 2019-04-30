@@ -10,6 +10,7 @@ __global__ void relu_backward(float *input_grad, float *cache, float *output_gra
 __global__ void subtract(float *a, float *b, int N);
 __global__ void add(float *a, float *b, int N);
 __global__ void softmax_backward(float*,float*,int);
+__global__ void softmax(float*,int, int);
 class Layer
 {
   public:
@@ -25,6 +26,8 @@ class Layer
 
     Matrix<float> y;
     Matrix<float> dy;
+
+    Matrix<float> y_prime;
 
     Matrix<float> x;
 
@@ -64,6 +67,7 @@ class Layer
         // this->x.to_gpu();
         // this->w.to_gpu();
         // this->y.to_gpu();
+
         matrix_mul(&this->w, &this->x, &this->y);
         matrix_mul(&this->w, &this->x, &this->y_prime);
         relu_forward<<<this->output_dim, 1>>>(this->y.get_d(), this->output_dim);
@@ -80,9 +84,14 @@ class Layer
 
         return dy;
     }
-    Matrix<float> backward(Matrix<float> input_gradient, Matrix<float> x)
+
+    Matrix<float> backward(Matrix<float> delta, int hidden_size, Matrix<float> input_gradient, Matrix<float> x)
     {
-        
+        relu_backward<<<hidden_size,1>>>(input_gradient.get_d(), this->y_prime.get_d(), this->dy.get_d(), hidden_size);
+        matrix_mul_ty(&this->dy, &x, &this->dw);
+        cudaDeviceSynchronize();
+
+        return dy;
     }
 
     void update()
@@ -164,18 +173,22 @@ class Network
         return temp;
     }
 
-    void backpropagation(Matrix<float> loss)
+    void backward(Matrix<float> loss)
     {   
         loss.to_gpu();
-        (*(layers.end() - 1)).backward(loss, (*(layers.end() - 2))->y);
-        for (std::list<Layer *>::iterator it = this->layers.end() - 2; it != this->layers.begin(); it--)
-        {
+        std::list<Layer *>::iterator end = this->layers.end();
+        end--;
+        Layer *exec = *end;
+        end--;
+        (*exec).backward_first(loss, (*end)->y);
+        (*end)->y.print();
+        int i = this->num_hidden + 1;
+        for (std::list<Layer *>::iterator it = this->layers.end(); it != this->layers.begin(); it--)
+        {   
+
             Layer *exec = *it;
             Matrix<float> temp2 = Matrix<float>(this->hidden_sizes[i],1,1);
-            temp2 = (*exec).backward(temp);
-            temp = Matrix<float>(this->hidden_sizes[i],1,1);
-            temp = temp2;
-            i++;
+            i--;
         }
     }
 };

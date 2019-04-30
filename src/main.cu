@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <algorithm>
 #include <math.h>
+#include <thrust/extrema.h>
 
-float *softmax(float *,int);
 
 int main() {
 
@@ -23,7 +23,7 @@ int main() {
     // printf("image count: %d\n", cnt);
     
     float *data = (float *)malloc(10*sizeof(float));
-    float *label;
+    float label[] = {0,1,0};
     for(int i=0; i<10; i++) {
         data[i] = 1.0f;
     }
@@ -33,24 +33,36 @@ int main() {
     int input_dimension = 10;
     int num_hidden = 2;
     int hidden_sizes[] = {5,4};
-    int num_classes = 2;
+    int num_classes = 3;
     Network net = Network(input_dimension,num_classes,num_hidden, hidden_sizes);
     
     Matrix<float> output = Matrix<float>(num_classes,1,1);
     
     output = net.forward(x);
+    // output.to_cpu();
+    // output.print();
+
+    thrust::device_ptr<float> d_ptr = thrust::device_pointer_cast(output.get_d());
+    float max = *(thrust::max_element(d_ptr, d_ptr + num_classes));
+    softmax<<<1,num_classes>>>(output.get_d(), num_classes, max);
+    // output.to_cpu();
+    // output.print();
+
+    float *predicted = output.get_d();
+    float *real_label;
+    cudaMalloc((void **)&real_label, num_classes * sizeof(float));
+    cudaMemcpy(real_label,label, num_classes * sizeof(float), cudaMemcpyHostToDevice);
+    softmax_backward<<<num_classes,1>>>(predicted, real_label, num_classes);
     output.to_cpu();
+    output.print();
+    // Matrix<float> loss = Matrix<float>(num_classes,1,1,predicted);
 
-    float *temp = (float *)malloc(num_classes * sizeof(float));
-    temp = output.get_h();
-    temp = softmax(temp,num_classes);
+    // output.to_cpu();
+    // output.print();
+    // temp = softmax(temp,num_classes);
 
-    float *der = cudaMalloc(num_classes * sizeof(float));
-    cudaMemcpy(der,temp,num_classes * sizeof(float),cudaMemcpyHostToDevice);
-    softmax_backward<<<num_classes,1>>>(der,label,num_classes);
-    cudaMemcpy(temp,der,num_classes * sizeof(float),cudaMemCpyDeviceToHost);
-    Matrix<float> loss = Matrix<float>(num_classes,1,1,temp);
-    net.backpropagation(loss);
+    // Matrix<float> loss = Matrix<float>(num_classes,1,1,temp);
+    // net.backward(loss);
 
     // float *loss = (float *)malloc(3*sizeof(float));
     // for(int i=0; i<3; i++) {
@@ -73,19 +85,19 @@ int main() {
 
 }
 
-float *softmax(float *x, int N)
-{   
-    float max = *std::max_element(x,x+N);
-    float sum = 0;
-    for (int i = 0; i<N; i++)
-    {
-        x[i] -= max;
-        x[i] = exp(x[i]);
-        sum += x[i];
-    }
-    for (int i = 0; i<N; i++)
-    {
-        x[i]/=sum;
-    }
-    return x;
-}
+// float *softmax(float *x, int N)
+// {   
+//     float max = *std::max_element(x,x+N);
+//     float sum = 0;
+//     for (int i = 0; i<N; i++)
+//     {
+//         x[i] -= max;
+//         x[i] = exp(x[i]);
+//         sum += x[i];
+//     }
+//     for (int i = 0; i<N; i++)
+//     {
+//         x[i]/=sum;
+//     }
+//     return x;
+// }
