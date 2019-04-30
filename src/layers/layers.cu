@@ -1,6 +1,6 @@
 #include "layers.h"
 #include <cuda_runtime.h>
-
+#include <math.h>
 // Layer::Layer(int input_dim, int output_dim)
 // {
 
@@ -25,6 +25,15 @@ __global__ void relu_forward(float *x, int N)
         if(x[idx] < 0) {
             x[idx] = 0;
         }
+    }
+}
+
+__global__ void softmax_backward(float *x, float *real, int N)
+{
+    int idx = blockDim.x*blockIdx.x + threadIdx.x;
+    if(idx < N)
+    {
+        x[idx] -= real[idx];
     }
 }
 
