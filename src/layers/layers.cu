@@ -1,6 +1,7 @@
 #include "layers.h"
 #include <cuda_runtime.h>
 #include <math.h>
+#include <thrust/extrema.h>
 // Layer::Layer(int input_dim, int output_dim)
 // {
 
@@ -53,3 +54,19 @@ __global__ void subtract(float *a, float *b, int N)
     }
 }
 
+
+__global__ void softmax(float *x, int N, int max)
+{   
+    // float max = *thrust::max_element(x,x+N);
+    float sum = 0;
+    for (int i = 0; i<N; i++)
+    {
+        x[i] -= max;
+        x[i] = exp(x[i]);
+        sum += x[i];
+    }
+    for (int i = 0; i<N; i++)
+    {
+        x[i]/=sum;
+    }
+}
